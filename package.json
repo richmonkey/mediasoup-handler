@@ -1,7 +1,7 @@
 {
-	"name": "mediasoup-client",
+	"name": "mediasoup-handler",
 	"version": "3.7.16",
-	"description": "mediasoup client side TypeScript library",
+	"description": "mediasoup handler side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
 		"José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)"
@@ -10,7 +10,7 @@
 	"homepage": "https://mediasoup.org",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/versatica/mediasoup-client.git"
+		"url": "git+https://github.com/richmonkey/mediasoup-handler.git"
 	},
 	"funding": {
 		"type": "opencollective",
@@ -33,6 +33,7 @@
 	],
 	"scripts": {
 		"prepare": "node npm-scripts.mjs prepare",
+		"postinstall": "node npm-scripts.mjs typescript:build",
 		"typescript:build": "node npm-scripts.mjs typescript:build",
 		"typescript:watch": "node npm-scripts.mjs typescript:watch",
 		"lint": "node npm-scripts.mjs lint",

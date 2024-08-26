@@ -18,5 +18,12 @@
 		"watchDirectory": "useFsEvents",
 		"fallbackPolling": "dynamicPriority",
 		"synchronousWatchDirectory": true
-	}
+	},
+	"exclude": [ 
+		"src/Producer.ts",
+		"src/Consumer.ts",
+		"src/DataProducer.ts",
+		"src/DataConsumer.ts",
+		"src/test"
+	]
 }
