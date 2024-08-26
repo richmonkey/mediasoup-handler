@@ -5,6 +5,8 @@ import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
+import { SendTransport } from './SendTransport';
+import { RecvTransport } from './RecvTransport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
@@ -20,7 +22,7 @@ import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
-import { AppData } from './types';
+import { AppData } from "./types";
 
 const logger = new Logger('Device');
 
@@ -551,7 +553,7 @@ export class Device {
 		additionalSettings,
 		proprietaryConstraints,
 		appData,
-	}: TransportOptions<TransportAppData>): Transport<TransportAppData> {
+	}: TransportOptions<TransportAppData>): SendTransport<TransportAppData> {
 		logger.debug('createSendTransport()');
 
 		return this.createTransport<TransportAppData>({
@@ -566,7 +568,7 @@ export class Device {
 			additionalSettings: additionalSettings,
 			proprietaryConstraints: proprietaryConstraints,
 			appData: appData,
-		});
+		})  as SendTransport<TransportAppData>;
 	}
 
 	/**
@@ -586,7 +588,7 @@ export class Device {
 		additionalSettings,
 		proprietaryConstraints,
 		appData,
-	}: TransportOptions<TransportAppData>): Transport<TransportAppData> {
+	}: TransportOptions<TransportAppData>): RecvTransport<TransportAppData> {
 		logger.debug('createRecvTransport()');
 
 		return this.createTransport<TransportAppData>({
@@ -601,7 +603,7 @@ export class Device {
 			additionalSettings: additionalSettings,
 			proprietaryConstraints: proprietaryConstraints,
 			appData: appData,
-		});
+		}) as RecvTransport<TransportAppData>;
 	}
 
 	private createTransport<TransportAppData extends AppData>({
@@ -618,7 +620,7 @@ export class Device {
 		appData,
 	}: {
 		direction: 'send' | 'recv';
-	} & TransportOptions<TransportAppData>): Transport<TransportAppData> {
+	} & TransportOptions<TransportAppData>): SendTransport<TransportAppData>|RecvTransport<TransportAppData> {
 		if (!this._loaded) {
 			throw new InvalidStateError('not loaded');
 		} else if (typeof id !== 'string') {
@@ -635,23 +637,43 @@ export class Device {
 			throw new TypeError('if given, appData must be an object');
 		}
 
+		let transport: SendTransport<TransportAppData>|RecvTransport<TransportAppData>;
 		// Create a new Transport.
-		const transport: Transport<TransportAppData> = new Transport({
-			direction,
-			id,
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			iceServers,
-			iceTransportPolicy,
-			additionalSettings,
-			proprietaryConstraints,
-			appData,
-			handlerFactory: this._handlerFactory,
-			extendedRtpCapabilities: this._extendedRtpCapabilities,
-			canProduceByKind: this._canProduceByKind,
-		});
+		if (direction === "send") {
+			transport = new SendTransport<TransportAppData>({
+					direction,
+					id,
+					iceParameters,
+					iceCandidates,
+					dtlsParameters,
+					sctpParameters,
+					iceServers,
+					iceTransportPolicy,
+					additionalSettings,
+					proprietaryConstraints,
+					appData,
+					handlerFactory: this._handlerFactory,
+					extendedRtpCapabilities: this._extendedRtpCapabilities,
+					canProduceByKind: this._canProduceByKind
+				});
+		} else {
+			transport = new RecvTransport<TransportAppData>({
+					direction,
+					id,
+					iceParameters,
+					iceCandidates,
+					dtlsParameters,
+					sctpParameters,
+					iceServers,
+					iceTransportPolicy,
+					additionalSettings,
+					proprietaryConstraints,
+					appData,
+					handlerFactory: this._handlerFactory,
+					extendedRtpCapabilities: this._extendedRtpCapabilities,
+					canProduceByKind: this._canProduceByKind
+				});
+		}
 
 		// Emit observer event.
 		this._observer.safeEmit('newtransport', transport);
