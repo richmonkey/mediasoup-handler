@@ -244,7 +244,7 @@ export class Transport<
 		this._runPromise = RTCPeerConnection.generateCertificate(stdECDSACertificate)
             .then((certificate) => {
                 this._certificate = certificate;
-                additionalSettings.certificates = [certificate];
+                clonedAdditionalSettings.certificates = [certificate];
                 this._handler.run(
                     {
                         direction,
@@ -254,7 +254,7 @@ export class Transport<
                         sctpParameters,
                         iceServers,
                         iceTransportPolicy,
-                        additionalSettings,
+                        additionalSettings: clonedAdditionalSettings,
                         proprietaryConstraints,
                         extendedRtpCapabilities
                     });
@@ -421,6 +421,22 @@ export class Transport<
 
 	private handleHandler(): void {
 		const handler = this._handler;
+
+		handler.on('@connect', (
+			{ dtlsParameters }: { dtlsParameters: DtlsParameters },
+			callback: () => void,
+			errback: (error: Error) => void
+		) =>
+		{
+			if (this._closed)
+			{
+				errback(new InvalidStateError('closed'));
+
+				return;
+			}
+
+			callback();
+		});
 
 		handler.on(
 			'@icegatheringstatechange',
